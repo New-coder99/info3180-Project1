@@ -1,0 +1,36 @@
+class PropertyForm(FlaskForm):
+        title = StringField('Title', validators=[DataRequired()])
+        bedrooms = StringField('Number of Bedrooms', validators=[DataRequired()])
+        bathrooms = StringField('Number of Bathrooms', validators=[DataRequired()])
+        location = StringField('Location', validators=[DataRequired()])
+        price = StringField('Price', validators=[DataRequired()])
+        type = SelectField('Type', choices=[('House', 'House'), ('Apartment', 'Apartment')], validators=[DataRequired()])
+        description = TextAreaField('Description')
+        photo = FileField('Photo')
+
+    form = PropertyForm()
+    if form.validate_on_submit():
+        # Generate a unique ID for the new property
+        property_id = str(uuid.uuid4())
+
+        # Save photo file to server
+        if form.photo.data:
+            filename = secure_filename(form.photo.data.filename)
+            form.photo.data.save(os.path.join('static/photos', filename))
+
+        # Save property details to database
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""INSERT INTO properties (id, title, bedrooms, bathrooms, location, price, type, description, photo)
+                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                       (property_id, form.title.data, form.bedrooms.data, form.bathrooms.data, form.location.data,
+                        form.price.data, form.type.data, form.description.data, filename if form.photo.data else None))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        flash('Property added successfully!', 'success')
+        return redirect(url_for('prop_list'))
+    return render_template('create_property.html')

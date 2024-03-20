@@ -5,59 +5,131 @@ Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file contains the routes for your application.
 """
 
+import uuid
+
+import psycopg2
 from app import app
-from flask import render_template, request, redirect, url_for
+from flask import Flask, flash, render_template, request, redirect, url_for
+from wtforms import StringField, SelectField, TextAreaField, FileField
+from wtforms.validators import DataRequired
+from werkzeug.utils import secure_filename
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm
+import os
 
 
 ###
 # Routing for your application.
 ###
 
+def get_db_connection():
+    conn = psycopg2.connect(
+        dbname="info3180project1",
+        user="postgres",
+        password="chickenback",
+        host="localhost",
+        port="5432"  # Default PostgreSQL port
+    )
+    return conn
+
+
+# Define your routes
 @app.route('/')
 def home():
     """Render website's home page."""
     return render_template('home.html')
 
-
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Jonoi Graham")
 
 
-###
-# The functions below should be applicable to all Flask apps.
-###
-
-# Display Flask WTF errors as Flash messages
-def flash_errors(form):
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(u"Error in the %s field - %s" % (
-                getattr(form, field).label.text,
-                error
-            ), 'danger')
-
-@app.route('/<file_name>.txt')
-def send_text_file(file_name):
-    """Send your static text file."""
-    file_dot_text = file_name + '.txt'
-    return app.send_static_file(file_dot_text)
 
 
-@app.after_request
-def add_header(response):
-    """
-    Add headers to both force latest IE rendering engine or Chrome Frame,
-    and also tell the browser not to cache the rendered page. If we wanted
-    to we could change max-age to 600 seconds which would be 10 minutes.
-    """
-    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
-    response.headers['Cache-Control'] = 'public, max-age=0'
-    return response
 
 
-@app.errorhandler(404)
-def page_not_found(error):
-    """Custom 404 page."""
-    return render_template('404.html'), 404
+
+@app.route('/properties/create',methods=['GET','POST'])
+def create_prop():
+    if request.method=='GET':
+        return render_template('create_property.html')
+    if request.method=='POST':
+        title = request.form.get('title')
+        bedrooms = request.form.get('bedrooms')
+        bathrooms = request.form.get('bathrooms')
+        location = request.form.get('location')
+        price = request.form.get('price')
+        prop_type = request.form.get('type')
+        description = request.form.get('description')
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        insert_query = """INSERT INTO customers (title,`bedrooms`,`bathrooms`,location,`price`,prop_type,description) VALUES (%s,%s, %s, %s, %s, %s, %s, %s)"""
+        cursor.execute(insert_query,(title,bedrooms,bathrooms,location,price,prop_type,description))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('prop_list'))
+
+
+
+
+
+
+
+
+
+
+@app.route('/properties/<int:property_id>',methods=['GET'])
+def prop_det(property_id):
+    
+    conn = get_db_connection()
+    
+    cur = conn.cursor()
+
+    
+    cur.execute("SELECT title, bedrooms, bathrooms, location, price, type, description, photo FROM properties WHERE id = %s", (property_id,))
+    property_details = cur.fetchone()
+
+   
+    cur.close()
+    conn.close()
+
+   
+    if property_details:
+       
+        title, bedrooms, bathrooms, location, price, prop_type, description, photo = property_details
+
+       
+        return render_template('property_details.html', 
+                               title=title, 
+                               bedrooms=bedrooms, 
+                               bathrooms=bathrooms, 
+                               location=location, 
+                               price=price, 
+                               prop_type=prop_type, 
+                               description=description, 
+                               photo=photo)
+    else:
+        
+        return "Property not found"
+
+
+@app.route('/properties/')
+def prop_list():
+    # Connect to the PostgreSQL database
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Execute a query to fetch all properties
+    cur.execute("SELECT * FROM properties")
+
+    # Fetch all rows
+    properties = cur.fetchall()
+
+    # Close cursor and connection
+    cur.close()
+    conn.close()
+
+    # Pass the properties to the template for rendering
+    return render_template('property_list.html', properties=properties)
