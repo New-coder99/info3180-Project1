@@ -10,10 +10,23 @@
     <h1>Property List</h1>
     <ul>
         {% for property in properties %}
-            <li>
-                <img src="{{ url_for('static', filename='photos/' + property.photo) }}" alt="Property Photo" style="width: 100px; height: 100px;">
-                <a href="{{ url_for('prop_det', property_id=property.id) }}">{{ property.title }}</a> - {{ property.location }} - ${{ property.price }}
-            </li>
+        
+        <li>
+            {% if property[6] %} {# Check if photo is available #}
+            <img src="data:image/png;base64,{{ property[6] }}" alt="Property Photo">
+            {% else %}
+            <p>No photo available</p>
+            {% endif %}
+            <div>
+                <h2>Title: {{ property[1] }}</h2> {# Accessing title using indexing #}
+                <p>Location: {{ property[4] }}</p>
+                <p>Price: ${{ property[5] }}</p>
+                <p>Bedrooms: {{ property[2] }}</p>
+                <p>Bathrooms: {{ property[3] }}</p>
+                <p>Type: {{ property[6] }}</p>
+                <p>Description: {{ property[7] }}</p>
+            </div>
+        </li>
         {% endfor %}
     </ul>
 </body>

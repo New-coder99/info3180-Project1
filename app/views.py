@@ -62,11 +62,14 @@ def create_prop():
         price = request.form.get('price')
         prop_type = request.form.get('type')
         description = request.form.get('description')
-
+        photo_data=request.form.get('photo')
         conn = get_db_connection()
         cursor = conn.cursor()
-        insert_query = """INSERT INTO customers (title,`bedrooms`,`bathrooms`,location,`price`,prop_type,description) VALUES (%s,%s, %s, %s, %s, %s, %s, %s)"""
-        cursor.execute(insert_query,(title,bedrooms,bathrooms,location,price,prop_type,description))
+        insert_query = """
+    INSERT INTO properties (title, bedrooms, bathrooms, location, price, type, description, photo)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+"""
+        cursor.execute(insert_query, (title, bedrooms, bathrooms, location, price, prop_type, description, photo_data))
         conn.commit()
         conn.close()
         return redirect(url_for('prop_list'))
@@ -98,18 +101,15 @@ def prop_det(property_id):
    
     if property_details:
        
-        title, bedrooms, bathrooms, location, price, prop_type, description, photo = property_details
-
-       
-        return render_template('property_details.html', 
-                               title=title, 
-                               bedrooms=bedrooms, 
-                               bathrooms=bathrooms, 
-                               location=location, 
-                               price=price, 
-                               prop_type=prop_type, 
-                               description=description, 
-                               photo=photo)
+        title = property_details[0]
+        bedrooms = property_details[1]
+        bathrooms = property_details[2]
+        location = property_details[3]
+        price = property_details[4]
+        prop_type = property_details[5]
+        description = property_details[6]
+        photo_data = property_details[7]
+        return render_template('property_details.html',title=title, bedrooms=bedrooms,bathrooms=bathrooms, location=location,  price=price, prop_type=prop_type, description=description, photo=photo_data)
     else:
         
         return "Property not found"

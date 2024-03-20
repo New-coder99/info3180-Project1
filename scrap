@@ -34,3 +34,9 @@ class PropertyForm(FlaskForm):
         flash('Property added successfully!', 'success')
         return redirect(url_for('prop_list'))
     return render_template('create_property.html')
+
+
+<li>
+                <img src="{{ url_for('static', filename='photos/' + property.photo) }}" alt="Property Photo" style="width: 100px; height: 100px;">
+                <a href="{{ url_for('prop_det', property_id=property.id) }}">{{ property.title }}</a> - {{ property.location }} - ${{ property.price }}
+            </li>
