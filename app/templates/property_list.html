@@ -12,10 +12,10 @@
         {% for property in properties %}
         
         <li>
-            {% if property[6] %} {# Check if photo is available #}
-            <img src="data:image/png;base64,{{ property[6] }}" alt="Property Photo">
+            {% if property[6] %}
+                <img src="{{ url_for('static', filename=property[8]) }}" alt="Property Photo">
             {% else %}
-            <p>No photo available</p>
+                <p>No photo available</p>
             {% endif %}
             <div>
                 <h2>Title: {{ property[1] }}</h2> {# Accessing title using indexing #}

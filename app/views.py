@@ -21,6 +21,19 @@ import os
 ###
 # Routing for your application.
 ###
+UPLOAD_FOLDER = 'templates/photos'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Route to handle file uploads
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return 'File uploaded successfully'
+    return 'No file uploaded'
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -49,12 +62,18 @@ def about():
 
 
 
-
+app.config['UPLOAD_FOLDER'] = 'app\static\photos'
 @app.route('/properties/create',methods=['GET','POST'])
 def create_prop():
     if request.method=='GET':
         return render_template('create_property.html')
     if request.method=='POST':
+        if 'photo' in request.files:
+            photo = request.files['photo']
+            if photo.filename != '':
+                filename = secure_filename(photo.filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                photo.save(filepath)
         title = request.form.get('title')
         bedrooms = request.form.get('bedrooms')
         bathrooms = request.form.get('bathrooms')
@@ -62,7 +81,7 @@ def create_prop():
         price = request.form.get('price')
         prop_type = request.form.get('type')
         description = request.form.get('description')
-        photo_data=request.form.get('photo')
+        photo_data=filename
         conn = get_db_connection()
         cursor = conn.cursor()
         insert_query = """

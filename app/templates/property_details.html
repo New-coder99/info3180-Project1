@@ -16,8 +16,9 @@
         <p><strong>Price:</strong> {{price }}</p>
         <p><strong>Type:</strong> {{ prop_type }}</p>
         <p><strong>Description:</strong> {{ description }}</p>
-        {% if photo %}
-        <img src="data:image/png;base64,{{ photo }}" alt="Property Photo">
+        {% if photo_data %}
+        
+            <img src="{{ url_for('static', filename=photo_data) }}" alt="Property Photo">
         {% else %}
             <p>No photo available</p>
         {% endif %}

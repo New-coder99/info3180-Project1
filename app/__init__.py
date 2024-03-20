@@ -26,12 +26,12 @@ CREATE TABLE IF NOT EXISTS properties (
     price INTEGER NOT NULL,
     type VARCHAR(20) NOT NULL,
     description TEXT,
-    photo BYTEA
+    photo varchar(255)
 );"""
 
 conn = get_db_connection()
 cursor = conn.cursor()
-
+cursor.execute("DROP TABLE IF Exists properties")
 cursor.execute(Query)
 conn.commit()
 conn.close()
